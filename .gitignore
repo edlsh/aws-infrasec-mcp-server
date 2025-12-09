@@ -65,7 +65,7 @@ jspm_packages/
 # AWS credentials (extra safety)
 .aws/
 credentials
-config
+/config
 
 # TypeScript cache
 *.tsbuildinfo
