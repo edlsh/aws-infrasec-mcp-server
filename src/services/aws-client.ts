@@ -1,21 +1,16 @@
 import { EC2Client, EC2ClientConfig } from '@aws-sdk/client-ec2';
+import type { AWSClientConfig } from '../types/index.js';
 
-export interface AWSConfig {
-  region?: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
-  profile?: string;
-}
+export { AWSClientConfig };
 
 export class AWSClientService {
-  private ec2Client: EC2Client;
+  private readonly ec2Client: EC2Client;
 
-  constructor(config?: AWSConfig) {
+  constructor(config?: AWSClientConfig) {
     const clientConfig: EC2ClientConfig = {
-      region: config?.region || process.env.AWS_REGION || 'us-east-1',
+      region: config?.region ?? process.env.AWS_REGION ?? 'us-east-1',
     };
 
-    // Handle different credential scenarios
     if (config?.accessKeyId && config?.secretAccessKey) {
       clientConfig.credentials = {
         accessKeyId: config.accessKeyId,
@@ -27,8 +22,6 @@ export class AWSClientService {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       };
     }
-    // If no explicit credentials, AWS SDK will use default credential chain
-    // (profile, IAM role, etc.)
 
     this.ec2Client = new EC2Client(clientConfig);
   }
@@ -38,7 +31,7 @@ export class AWSClientService {
   }
 
   getRegion(): string {
-    return this.ec2Client.config.region?.toString() || 'us-east-1';
+    return this.ec2Client.config.region?.toString() ?? 'us-east-1';
   }
 
   async testConnection(): Promise<boolean> {
@@ -53,16 +46,22 @@ export class AWSClientService {
   }
 }
 
-// Singleton instance for the application
-let awsClientInstance: AWSClientService | null = null;
+const clientsByKey = new Map<string, AWSClientService>();
 
-export function getAWSClient(config?: AWSConfig): AWSClientService {
-  if (!awsClientInstance) {
-    awsClientInstance = new AWSClientService(config);
+export function getAWSClient(config?: AWSClientConfig): AWSClientService {
+  const key = JSON.stringify({
+    region: config?.region ?? process.env.AWS_REGION ?? 'us-east-1',
+    accessKeyId: config?.accessKeyId ?? process.env.AWS_ACCESS_KEY_ID ?? '',
+  });
+  
+  let client = clientsByKey.get(key);
+  if (!client) {
+    client = new AWSClientService(config);
+    clientsByKey.set(key, client);
   }
-  return awsClientInstance;
+  return client;
 }
 
 export function resetAWSClient(): void {
-  awsClientInstance = null;
+  clientsByKey.clear();
 }

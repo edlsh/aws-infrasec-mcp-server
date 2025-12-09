@@ -1,0 +1,17 @@
+services:
+  mcp-server:
+    build: .
+    image: aws-infrasec-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_PROFILE=${AWS_PROFILE:-}
+    volumes:
+      - ${HOME}/.aws:/home/mcpuser/.aws:ro
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true

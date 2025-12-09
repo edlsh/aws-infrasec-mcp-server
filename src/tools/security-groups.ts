@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { getAWSClient } from '../services/aws-client.js';
-import { SecurityAnalyzer } from '../services/analyzer.js';
+import type { SecurityFinding, SecurityGroupToolOutput, McpTool } from '../types/index.js';
+import { SecurityGroupAnalyzer } from '../analyzers/index.js';
+import { getAWSClient, AWSClientService } from '../services/aws-client.js';
 
-// Input validation schema
 const SecurityGroupAnalysisSchema = z.object({
   region: z.string().optional(),
   groupIds: z.array(z.string()).optional(),
@@ -11,166 +11,93 @@ const SecurityGroupAnalysisSchema = z.object({
 
 export type SecurityGroupAnalysisInput = z.infer<typeof SecurityGroupAnalysisSchema>;
 
-// Import types from analyzer service
-import type { AnalysisResult, SecurityFinding } from '../services/analyzer.js';
-
-// Extended result type for tool output
-interface ExtendedSecurityGroupResult {
-  analysisType: string;
-  region: string;
-  timestamp: string;
-  summary: AnalysisResult['summary'] & {
-    riskDistribution: {
-      high: string;
-      medium: string;
-      low: string;
-    };
-  };
-  findings: Array<{
-    securityGroup: {
-      id: string;
-      name: string;
-    };
-    issue: {
-      type: string;
-      severity: 'HIGH' | 'MEDIUM' | 'LOW';
-      description: string;
-      recommendation: string;
-    };
-    affectedRule: {
-      port: string | number;
-      protocol: string;
-      source: string;
-    } | null;
-  }>;
-  recommendations: string[];
+export interface SecurityGroupToolDependencies {
+  awsClient?: AWSClientService;
+  analyzer?: SecurityGroupAnalyzer;
 }
 
-export class SecurityGroupTool {
-  name = 'analyze_security_groups';
-  description = 'Analyze AWS Security Groups for potential security misconfigurations and vulnerabilities';
+export class SecurityGroupTool implements McpTool<unknown, SecurityGroupToolOutput> {
+  readonly name = 'analyze_security_groups';
+  readonly description = 'Analyze AWS Security Groups for potential security misconfigurations and vulnerabilities';
 
-  inputSchema = {
+  readonly inputSchema = {
     type: 'object',
     properties: {
-      region: {
-        type: 'string',
-        description: 'AWS region to analyze (optional, defaults to configured region)',
-        examples: ['us-east-1', 'us-west-2', 'eu-west-1']
-      },
-      groupIds: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Specific security group IDs to analyze (optional, analyzes all if not provided)',
-        examples: [['sg-123456789abcdef0', 'sg-987654321fedcba0']]
-      },
-      includeUnused: {
-        type: 'boolean',
-        description: 'Whether to include analysis of unused security groups',
-        default: true
-      }
+      region: { type: 'string', description: 'AWS region to analyze' },
+      groupIds: { type: 'array', items: { type: 'string' }, description: 'Specific security group IDs to analyze' },
+      includeUnused: { type: 'boolean', description: 'Include unused security groups', default: true }
     },
     required: []
   } as const;
 
-  async execute(input: unknown): Promise<ExtendedSecurityGroupResult> {
+  private readonly awsClient: AWSClientService;
+  private readonly analyzer: SecurityGroupAnalyzer;
+
+  constructor(deps?: SecurityGroupToolDependencies) {
+    this.awsClient = deps?.awsClient ?? getAWSClient();
+    this.analyzer = deps?.analyzer ?? new SecurityGroupAnalyzer();
+  }
+
+  async execute(input: unknown): Promise<SecurityGroupToolOutput> {
     try {
-      // Validate input
       const validatedInput = SecurityGroupAnalysisSchema.parse(input);
-      
-      // Get AWS client
-      const awsClient = getAWSClient();
-      const ec2Client = awsClient.getEC2Client();
-      const region = validatedInput.region || awsClient.getRegion();
+      const ec2Client = this.awsClient.getEC2Client();
+      const region = validatedInput.region ?? this.awsClient.getRegion();
 
-      // Test AWS connection
-      const connectionTest = await awsClient.testConnection();
-      if (!connectionTest) {
-        throw new Error('Failed to connect to AWS. Please check your credentials and region configuration.');
-      }
+      const analysisResult = await this.analyzer.analyze(ec2Client, validatedInput.groupIds);
 
-      // Initialize security analyzer
-      const analyzer = new SecurityAnalyzer();
-
-      // Perform security group analysis
-      const analysisResult = await analyzer.analyzeSecurityGroups(
-        ec2Client,
+      return {
+        analysisType: 'security-group',
         region,
-        validatedInput.groupIds
-      );
-
-      // Format results for better readability
-      const formattedResult: ExtendedSecurityGroupResult = {
-        analysisType: 'Security Group Analysis',
-        region: region,
         timestamp: new Date().toISOString(),
         summary: {
           ...analysisResult.summary,
           riskDistribution: {
-            high: `${analysisResult.summary.highRiskFindings} findings`,
-            medium: `${analysisResult.summary.mediumRiskFindings} findings`,
-            low: `${analysisResult.summary.lowRiskFindings} findings`
+            high: analysisResult.summary.highRiskFindings,
+            medium: analysisResult.summary.mediumRiskFindings,
+            low: analysisResult.summary.lowRiskFindings
           }
         },
-        findings: analysisResult.findings.map(finding => ({
-          securityGroup: {
-            id: finding.securityGroupId,
-            name: finding.securityGroupName
-          },
-          issue: {
-            type: finding.ruleId,
-            severity: finding.severity,
-            description: finding.description,
-            recommendation: finding.recommendation
-          },
-          affectedRule: finding.affectedRule ? {
-            port: finding.affectedRule.port,
-            protocol: finding.affectedRule.protocol,
-            source: finding.affectedRule.source
-          } : null
-        })),
-        recommendations: this.generateOverallRecommendations(analysisResult.findings)
+        findings: analysisResult.findings,
+        recommendations: this.generateRecommendations(analysisResult.findings)
       };
-
-      return formattedResult;
-
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`Input validation failed: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(`Input validation failed: ${error.issues.map(e => e.message).join(', ')}`);
       }
-      
       if (error instanceof Error) {
         throw new Error(`Security group analysis failed: ${error.message}`);
       }
-      
       throw new Error('An unexpected error occurred during security group analysis');
     }
   }
 
-  private generateOverallRecommendations(findings: SecurityFinding[]): string[] {
+  private generateRecommendations(findings: SecurityFinding[]): string[] {
     const recommendations: string[] = [];
     const highRiskCount = findings.filter(f => f.severity === 'HIGH').length;
     const mediumRiskCount = findings.filter(f => f.severity === 'MEDIUM').length;
     
     if (highRiskCount > 0) {
-      recommendations.push(`🚨 Address ${highRiskCount} HIGH severity findings immediately`);
-      recommendations.push('🔒 Implement principle of least privilege for security group rules');
-      recommendations.push('🛡️ Use specific IP ranges instead of 0.0.0.0/0 where possible');
+      recommendations.push(`Address ${highRiskCount} HIGH severity findings immediately`);
+      recommendations.push('Implement principle of least privilege for security group rules');
+      recommendations.push('Use specific IP ranges instead of 0.0.0.0/0 where possible');
     }
     
     if (mediumRiskCount > 0) {
-      recommendations.push(`⚠️ Review ${mediumRiskCount} MEDIUM severity findings`);
-      recommendations.push('📋 Consider implementing a security group naming convention');
+      recommendations.push(`Review ${mediumRiskCount} MEDIUM severity findings`);
+      recommendations.push('Consider implementing a security group naming convention');
     }
     
-    // General recommendations
-    recommendations.push('🔍 Regular security group audits should be performed');
-    recommendations.push('📊 Consider using AWS Config for continuous compliance monitoring');
-    recommendations.push('🏗️ Implement Infrastructure as Code (IaC) for consistent security group management');
+    recommendations.push('Regular security group audits should be performed');
+    recommendations.push('Consider using AWS Config for continuous compliance monitoring');
+    recommendations.push('Implement Infrastructure as Code (IaC) for consistent security group management');
     
     return recommendations;
   }
 }
 
-// Export singleton instance
+export function createSecurityGroupTool(deps?: SecurityGroupToolDependencies): SecurityGroupTool {
+  return new SecurityGroupTool(deps);
+}
+
 export const securityGroupTool = new SecurityGroupTool();

@@ -1,4 +1,5 @@
 {
+  "$comment": "Security rules with source 0.0.0.0/0 apply to both IPv4 (0.0.0.0/0) and IPv6 (::/0) public exposure",
   "rules": [
     {
       "id": "sg-ssh-world",
@@ -59,6 +60,26 @@
       "protocol": "tcp",
       "source": "0.0.0.0/0",
       "recommendation": "Place Redis in private subnet and enable authentication"
+    },
+    {
+      "id": "sg-mongodb-exposed",
+      "name": "MongoDB Port Exposed",
+      "description": "MongoDB port 27017 is accessible from the internet",
+      "severity": "HIGH",
+      "port": 27017,
+      "protocol": "tcp",
+      "source": "0.0.0.0/0",
+      "recommendation": "Place MongoDB in private subnet, enable authentication, and restrict access through application servers"
+    },
+    {
+      "id": "sg-couchdb-exposed",
+      "name": "CouchDB Port Exposed",
+      "description": "CouchDB port 5984 is accessible from the internet",
+      "severity": "HIGH",
+      "port": 5984,
+      "protocol": "tcp",
+      "source": "0.0.0.0/0",
+      "recommendation": "Place CouchDB in private subnet and restrict access through application servers"
     },
     {
       "id": "sg-wide-port-range",

@@ -1,50 +1,40 @@
 {
   "name": "aws-infrasec-mcp-server",
-  "version": "1.0.0",
-  "description": "Learning-focused AWS Infrastructure Security MCP Server for portfolio demonstration",
+  "version": "1.1.0",
+  "description": "AWS Infrastructure Security MCP Server",
   "main": "build/index.js",
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "start": "node build/index.js",
-    "clean": "rm -rf build",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "lint:security": "eslint src/**/*.ts --ext .ts --format sarif -o eslint-results.sarif",
-    "security:audit": "npm audit --audit-level high",
-    "security:check": "npm run lint:security && npm run security:audit",
+    "dev": "bun run src/index.ts",
+    "start": "bun run build/index.js",
+    "clean": "rm -rf build dist",
+    "bundle": "bun build src/index.ts --outfile=dist/index.js --minify --target=node",
+    "build:prod": "bun run build && bun run bundle",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts",
-    "validate": "npm run lint && npm run security:audit && npm run build"
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "validate": "bun run lint && bun run build",
+    "docker:build": "docker build -t aws-infrasec-mcp .",
+    "docker:run": "docker run -it --rm -e AWS_REGION=${AWS_REGION:-us-east-1} -v ~/.aws:/home/mcpuser/.aws:ro aws-infrasec-mcp"
   },
-  "keywords": [
-    "mcp",
-    "aws",
-    "security",
-    "infrastructure",
-    "portfolio"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-ec2": "^3.478.0",
-    "@modelcontextprotocol/sdk": "^0.5.0",
-    "zod": "^3.22.4"
+    "@aws-sdk/client-ec2": "^3.943.0",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-security": "^2.1.1",
-    "prettier": "^3.1.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.3.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "@eslint/js": "^9.39.0",
+    "@types/bun": "latest",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.0",
+    "eslint-plugin-security": "^3.0.0",
+    "globals": "^16.2.0",
+    "prettier": "^3.7.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.48.0"
   }
 }

@@ -21,7 +21,7 @@ Built with TypeScript and designed for educational purposes, this server demonst
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18+ or Bun runtime
 - AWS CLI configured or AWS credentials
 - TypeScript knowledge
 - Basic understanding of AWS EC2 and Security Groups
@@ -131,14 +131,14 @@ analyze_security_groups --includeUnused false
 ```
 
 **Security Checks:**
-- SSH (port 22) open to 0.0.0.0/0
-- RDP (port 3389) open to 0.0.0.0/0
-- Database ports (3306, 5432, 1433) exposed publicly
-- Wide port ranges
-- All traffic allowed rules
+- SSH (port 22) open to `0.0.0.0/0` or `::/0` (IPv4/IPv6)
+- RDP (port 3389) open to `0.0.0.0/0` or `::/0`
+- Database ports (MySQL 3306, PostgreSQL 5432, SQL Server 1433, Redis 6379, MongoDB 27017, CouchDB 5984) exposed publicly
+- Wide port ranges (>100 ports)
+- All traffic allowed rules (protocol `-1`)
 - Unused security groups
 
-### 2. Public Instance Scanner (`scan_public_instances`)
+### 2. Public Instance Scanner (`analyze_public_instances`)
 
 Scans EC2 instances for public IP exposure and associated security risks.
 
@@ -149,17 +149,17 @@ Scans EC2 instances for public IP exposure and associated security risks.
 **Example Usage:**
 ```bash
 # Scan all public instances in us-east-1
-scan_public_instances --region us-east-1
+analyze_public_instances --region us-east-1
 
 # Scan without security group analysis
-scan_public_instances --includeSecurityGroups false
+analyze_public_instances --includeSecurityGroups false
 ```
 
 **Analysis Features:**
 - Public IP detection
 - Security group correlation
-- Port exposure assessment
-- Risk level calculation
+- Port exposure assessment (IPv4 and IPv6)
+- Risk level calculation (HIGH/MEDIUM/LOW)
 - Actionable recommendations
 
 ## 🔒 AWS Permissions
@@ -263,19 +263,30 @@ scan_public_instances --includeSecurityGroups false
 aws-infrasec-mcp-server/
 ├── src/
 │   ├── index.ts                    # Main MCP server entry point
+│   ├── types/
+│   │   └── index.ts                # Centralized type definitions
+│   ├── config/
+│   │   ├── constants.ts            # DANGEROUS_PORTS, thresholds
+│   │   └── rules-loader.ts         # Security rules loading
+│   ├── analyzers/
+│   │   ├── security-group-analyzer.ts
+│   │   └── public-instance-analyzer.ts
 │   ├── tools/
 │   │   ├── security-groups.ts      # Security group analysis tool
 │   │   └── public-instances.ts     # Public instance scanning tool
 │   ├── services/
-│   │   ├── aws-client.ts           # AWS SDK client management
-│   │   └── analyzer.ts             # Core security analysis logic
+│   │   └── aws-client.ts           # AWS SDK client management
 │   └── rules/
 │       └── security-rules.json     # Security rule definitions
 ├── build/                          # Compiled TypeScript output
+├── dist/                           # Bundled production output
+├── Dockerfile                      # Multi-stage Docker build
+├── docker-compose.yml              # Docker Compose configuration
 ├── examples/
 │   └── usage-examples.md           # Usage examples and demos
 ├── package.json                    # Project dependencies and scripts
 ├── tsconfig.json                   # TypeScript configuration
+├── eslint.config.js                # ESLint flat config
 ├── README.md                       # This file
 └── .env.example                    # Environment variables template
 ```
@@ -284,10 +295,21 @@ aws-infrasec-mcp-server/
 
 ### Available Scripts
 ```bash
-npm run build      # Compile TypeScript to JavaScript
-npm run dev        # Run in development mode with ts-node
-npm start          # Run compiled JavaScript
-npm run clean      # Remove build directory
+npm run build       # Compile TypeScript to JavaScript
+npm run dev         # Run in development mode with Bun
+npm start           # Run compiled JavaScript
+npm run clean       # Remove build and dist directories
+npm run bundle      # Bundle to single minified JS file
+npm run build:prod  # Build + bundle for production
+npm run lint        # Run ESLint with security rules
+npm run test        # Run tests with Bun
+npm run validate    # Lint + build validation
+```
+
+### Docker Support
+```bash
+npm run docker:build  # Build Docker image (154MB)
+npm run docker:run    # Run with AWS credentials mounted
 ```
 
 ### Adding New Security Rules
@@ -372,7 +394,7 @@ export DEBUG=aws-infrasec-mcp-server
 - [ ] Create web dashboard for findings visualization
 - [ ] Add cost optimization recommendations
 - [ ] Implement automated remediation suggestions
-- [ ] Add unit and integration tests
+- [x] ~~Add unit and integration tests~~ (57 tests, 100% line coverage)
 - [ ] Support for multiple AWS accounts
 - [ ] CloudFormation/Terraform integration
 
