@@ -71,9 +71,29 @@ npm start
 
 ## 🔧 MCP Client Configuration
 
-### Claude Desktop Configuration
+### Cursor IDE
 
-Add to your Claude Desktop configuration file:
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=aws-infrasec&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImF3cy1pbmZyYXNlYy1tY3Atc2VydmVyIl0sImVudiI6eyJBV1NfUkVHSU9OIjoidXMtZWFzdC0xIn19)
+
+Or manually add to `.cursor/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "aws-infrasec": {
+      "command": "node",
+      "args": ["/path/to/aws-infrasec-mcp-server/build/index.js"],
+      "env": {
+        "AWS_REGION": "us-east-1",
+        "AWS_PROFILE": "your-profile-name"
+      }
+    }
+  }
+}
+```
+
+### Claude Desktop
+
+Add to your Claude Desktop configuration file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ```json
 {
@@ -83,28 +103,39 @@ Add to your Claude Desktop configuration file:
       "args": ["/path/to/aws-infrasec-mcp-server/build/index.js"],
       "env": {
         "AWS_REGION": "us-east-1",
-        "AWS_ACCESS_KEY_ID": "your_access_key",
-        "AWS_SECRET_ACCESS_KEY": "your_secret_key"
+        "AWS_PROFILE": "your-profile-name"
       }
     }
   }
 }
 ```
 
-### Using AWS Profile
-```json
-{
-  "mcpServers": {
-    "aws-infrasec": {
-      "command": "node",
-      "args": ["/path/to/aws-infrasec-mcp-server/build/index.js"],
-      "env": {
-        "AWS_PROFILE": "your-profile-name",
-        "AWS_REGION": "us-east-1"
-      }
-    }
-  }
-}
+### OpenAI Codex CLI
+
+Add to `~/.codex/config.toml`:
+```toml
+[mcp_servers.aws-infrasec]
+command = "node"
+args = ["/path/to/aws-infrasec-mcp-server/build/index.js"]
+
+[mcp_servers.aws-infrasec.env]
+AWS_REGION = "us-east-1"
+AWS_PROFILE = "your-profile-name"
+```
+
+### Gemini CLI
+
+Add to `~/.gemini/mcp.yaml`:
+```yaml
+mcp:
+  servers:
+    aws-infrasec:
+      command: node
+      args:
+        - /path/to/aws-infrasec-mcp-server/build/index.js
+      env:
+        AWS_REGION: us-east-1
+        AWS_PROFILE: your-profile-name
 ```
 
 ## 🛠️ Available Tools
