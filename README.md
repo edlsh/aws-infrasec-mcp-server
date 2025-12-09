@@ -1,12 +1,12 @@
 # AWS Infrastructure Security MCP Server
 
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/lucchesi-sec/aws-infrasec-mcp-server/graphs/commit-activity)
-[![GitHub last commit](https://img.shields.io/github/last-commit/lucchesi-sec/aws-infrasec-mcp-server.svg)](https://github.com/lucchesi-sec/aws-infrasec-mcp-server/commits/main)
-[![GitHub issues](https://img.shields.io/github/issues/lucchesi-sec/aws-infrasec-mcp-server.svg)](https://github.com/lucchesi-sec/aws-infrasec-mcp-server/issues)
-[![GitHub forks](https://img.shields.io/github/forks/lucchesi-sec/aws-infrasec-mcp-server.svg)](https://github.com/lucchesi-sec/aws-infrasec-mcp-server/network/members)
-[![GitHub stars](https://img.shields.io/github/stars/lucchesi-sec/aws-infrasec-mcp-server.svg)](https://github.com/lucchesi-sec/aws-infrasec-mcp-server/stargazers)
-[![Made with TypeScript](https://img.shields.io/badge/Made%20with-TypeScript-1f425f.svg)](https://www.typescriptlang.org/)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+<!-- Badges: Build/CI status first, then version, license, tech stack -->
+[![CI](https://img.shields.io/github/actions/workflow/status/edlsh/aws-infrasec-mcp-server/security-ci.yml?branch=main&style=flat-square&logo=github&label=CI)](https://github.com/edlsh/aws-infrasec-mcp-server/actions/workflows/security-ci.yml)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://github.com/edlsh/aws-infrasec-mcp-server/releases)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-runtime-f9f1e1?style=flat-square&logo=bun&logoColor=black)](https://bun.sh/)
+[![Docker](https://img.shields.io/badge/Docker-154MB-2496ed?style=flat-square&logo=docker&logoColor=white)](Dockerfile)
 
 A learning-focused Model Context Protocol (MCP) server that demonstrates AWS infrastructure security analysis capabilities. This project showcases MCP server development skills and AWS security knowledge for portfolio purposes.
 
