@@ -329,29 +329,6 @@ Edit `src/rules/security-rules.json` to add new security rules:
 }
 ```
 
-## 🎓 Educational Value
-
-This project demonstrates:
-
-### Technical Skills
-- **MCP Server Development**: Custom tools for AI workflows
-- **AWS SDK Integration**: Production-ready cloud service integration
-- **TypeScript Proficiency**: Type-safe, maintainable code
-- **Error Handling**: Robust error management and user feedback
-- **JSON Schema Validation**: Input validation and API design
-
-### Security Knowledge
-- **AWS Security Groups**: Understanding of network security fundamentals
-- **Risk Assessment**: Ability to prioritize security findings
-- **Best Practices**: Knowledge of AWS security best practices
-- **Remediation Guidance**: Practical security improvement recommendations
-
-### Software Engineering
-- **Clean Architecture**: Separation of concerns and modularity
-- **Documentation**: Comprehensive project documentation
-- **Configuration Management**: Environment-based configuration
-- **Testing Strategy**: Structure for comprehensive testing
-
 ## 🔍 Troubleshooting
 
 ### Common Issues
@@ -386,36 +363,31 @@ Enable detailed logging by setting:
 export DEBUG=aws-infrasec-mcp-server
 ```
 
-## 📋 TODO / Future Enhancements
+## 🗺️ Roadmap
 
-- [ ] Add VPC configuration analysis
-- [ ] Implement AWS Config integration
-- [ ] Add compliance framework mapping (CIS, NIST)
-- [ ] Create web dashboard for findings visualization
-- [ ] Add cost optimization recommendations
-- [ ] Implement automated remediation suggestions
-- [x] ~~Add unit and integration tests~~ (57 tests, 100% line coverage)
-- [ ] Support for multiple AWS accounts
-- [ ] CloudFormation/Terraform integration
+- [ ] VPC configuration analysis
+- [ ] AWS Config integration
+- [ ] Compliance framework mapping (CIS, NIST)
+- [ ] Multi-account support
 
-## 📄 License
-
-MIT License - see LICENSE file for details.
+See [open issues](https://github.com/edlsh/aws-infrasec-mcp-server/issues) for more.
 
 ## 🤝 Contributing
 
-This is a learning/portfolio project, but suggestions and improvements are welcome! Please feel free to:
-- Open issues for bugs or feature requests
-- Submit pull requests for improvements
-- Share feedback on code structure and best practices
+Contributions are welcome! To contribute:
 
-## 🔗 Related Links
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
+## 📄 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## 🔗 Resources
+
+- [Model Context Protocol](https://modelcontextprotocol.io/)
 - [AWS Security Best Practices](https://docs.aws.amazon.com/security/)
 - [AWS SDK for JavaScript v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-
----
-
-**Note**: This project is designed for educational and portfolio purposes. Always follow your organization's security policies and best practices when using in production environments.
